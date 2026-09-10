@@ -274,7 +274,7 @@ app.post('/api/invoices', async (req, res) => {
       ]);
     } else {
       await execute(`
-        INSERT INTO clients (
+        REPLACE INTO clients (
           id, groom_name, bride_name, phone, email, address,
           wedding_start_date, wedding_end_date, duration_days,
           venue, events, package_title, contract_total,
@@ -311,112 +311,54 @@ app.post('/api/invoices', async (req, res) => {
       ]);
     }
 
-    // Insert or replace Invoice
-    if (isPostgres) {
-      await execute(`
-        INSERT INTO invoices (
-          id, invoice_number, client_id, client_name, client_phone, client_email, client_address,
-          invoice_date, due_date, wedding_date, venue, events, status, payment_mode,
-          subtotal, discount, taxable_amount, cgst_rate, cgst_amount, sgst_rate, sgst_amount,
-          igst_rate, igst_amount, grand_total, paid_amount, pending_balance,
-          items_json, milestones_json, physical_gifts_json, notes, terms, created_at
-        ) VALUES (
-          ?, ?, ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?, ?
-        ) ON CONFLICT (id) DO UPDATE SET
-          client_name = EXCLUDED.client_name,
-          grand_total = EXCLUDED.grand_total,
-          paid_amount = EXCLUDED.paid_amount,
-          pending_balance = EXCLUDED.pending_balance,
-          items_json = EXCLUDED.items_json,
-          status = EXCLUDED.status
-      `, [
-        invId,
-        invoiceNumber,
-        clientId,
-        inv.clientName || `${groom} & ${bride}`,
-        inv.clientPhone || '',
-        inv.clientEmail || '',
-        inv.clientAddress || '',
-        inv.invoiceDate || new Date().toISOString().split('T')[0],
-        inv.dueDate || '',
-        inv.weddingDate || '',
-        inv.venue || '',
-        inv.events || '',
-        inv.status || (pending === 0 ? 'Paid' : 'Pending'),
-        inv.paymentMode || 'Bank Transfer',
-        inv.subtotal || 0,
-        inv.discount || 0,
-        inv.taxableAmount || 0,
-        inv.cgstRate || 0,
-        inv.cgstAmount || 0,
-        inv.sgstRate || 0,
-        inv.sgstAmount || 0,
-        inv.igstRate || 0,
-        inv.igstAmount || 0,
-        inv.grandTotal || 0,
-        inv.paidAmount || 0,
-        pending,
-        JSON.stringify(inv.items || []),
-        JSON.stringify(inv.milestones || []),
-        JSON.stringify(inv.physicalGifts || []),
-        inv.notes || '',
-        inv.terms || '',
-        inv.createdAt || new Date().toISOString()
-      ]);
-    } else {
-      await execute(`
-        INSERT OR REPLACE INTO invoices (
-          id, invoice_number, client_id, client_name, client_phone, client_email, client_address,
-          invoice_date, due_date, wedding_date, venue, events, status, payment_mode,
-          subtotal, discount, taxable_amount, cgst_rate, cgst_amount, sgst_rate, sgst_amount,
-          igst_rate, igst_amount, grand_total, paid_amount, pending_balance,
-          items_json, milestones_json, physical_gifts_json, notes, terms, created_at
-        ) VALUES (
-          ?, ?, ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?, ?
-        )
-      `, [
-        invId,
-        invoiceNumber,
-        clientId,
-        inv.clientName || `${groom} & ${bride}`,
-        inv.clientPhone || '',
-        inv.clientEmail || '',
-        inv.clientAddress || '',
-        inv.invoiceDate || new Date().toISOString().split('T')[0],
-        inv.dueDate || '',
-        inv.weddingDate || '',
-        inv.venue || '',
-        inv.events || '',
-        inv.status || (pending === 0 ? 'Paid' : 'Pending'),
-        inv.paymentMode || 'Bank Transfer',
-        inv.subtotal || 0,
-        inv.discount || 0,
-        inv.taxableAmount || 0,
-        inv.cgstRate || 0,
-        inv.cgstAmount || 0,
-        inv.sgstRate || 0,
-        inv.sgstAmount || 0,
-        inv.igstRate || 0,
-        inv.igstAmount || 0,
-        inv.grandTotal || 0,
-        inv.paidAmount || 0,
-        pending,
-        JSON.stringify(inv.items || []),
-        JSON.stringify(inv.milestones || []),
-        JSON.stringify(inv.physicalGifts || []),
-        inv.notes || '',
-        inv.terms || '',
-        inv.createdAt || new Date().toISOString()
-      ]);
-    }
+    await execute(`
+      REPLACE INTO invoices (
+        id, invoice_number, client_id, client_name, client_phone, client_email, client_address,
+        invoice_date, due_date, wedding_date, venue, events, status, payment_mode,
+        subtotal, discount, taxable_amount, cgst_rate, cgst_amount, sgst_rate, sgst_amount,
+        igst_rate, igst_amount, grand_total, paid_amount, pending_balance,
+        items_json, milestones_json, physical_gifts_json, notes, terms, created_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?
+      )
+    `, [
+      invId,
+      invoiceNumber,
+      clientId,
+      inv.clientName || `${groom} & ${bride}`,
+      inv.clientPhone || '',
+      inv.clientEmail || '',
+      inv.clientAddress || '',
+      inv.invoiceDate || new Date().toISOString().split('T')[0],
+      inv.dueDate || '',
+      inv.weddingDate || '',
+      inv.venue || '',
+      inv.events || '',
+      inv.status || (pending === 0 ? 'Paid' : 'Pending'),
+      inv.paymentMode || 'Bank Transfer',
+      inv.subtotal || 0,
+      inv.discount || 0,
+      inv.taxableAmount || 0,
+      inv.cgstRate || 0,
+      inv.cgstAmount || 0,
+      inv.sgstRate || 0,
+      inv.sgstAmount || 0,
+      inv.igstRate || 0,
+      inv.igstAmount || 0,
+      inv.grandTotal || 0,
+      inv.paidAmount || 0,
+      pending,
+      JSON.stringify(inv.items || []),
+      JSON.stringify(inv.milestones || []),
+      JSON.stringify(inv.physicalGifts || []),
+      inv.notes || '',
+      inv.terms || '',
+      inv.createdAt || new Date().toISOString()
+    ]);
 
     const saved = await queryOne('SELECT * FROM invoices WHERE id = ?', [invId]);
     res.json({ success: true, invoice: formatInvoice(saved) });
